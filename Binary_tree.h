@@ -11,10 +11,15 @@
 
 using std::cout;
 using std::cin;
+using std::endl;
+
 template<typename ElemType>
 struct Node {
-    ElemType data{};
-    Node<ElemType> *l_branch{}, r_branch{};
+    ElemType val{};
+    Node<ElemType> *l_branch{};
+    Node<ElemType> *r_branch{};
+
+    explicit Node(const ElemType &val) : val(val) {}
 };
 
 template<typename ElemType>
@@ -24,6 +29,12 @@ private:
 public:
     Binary_tree();
 
+    Binary_tree(const std::initializer_list<int> &v);
+
+    void insert(const ElemType &val);
+
+    Node<ElemType> *search(const ElemType &val);
+
     void inorderTraversal() const;
 
     void preorderTraversal() const;
@@ -32,7 +43,52 @@ public:
 };
 
 template<typename ElemType>
+Binary_tree<ElemType>::Binary_tree(const std::initializer_list<int> &v):Binary_tree() {
+    for (const auto &item : v) {
+        insert(item);
+    }
+}
+
+template<typename ElemType>
 Binary_tree<ElemType>::Binary_tree():root(nullptr) {
+}
+
+template<typename ElemType>
+Node<ElemType> *Binary_tree<ElemType>::search(const ElemType &val) {
+    auto p{root};
+    while (p != nullptr && val != p->val) {
+        if (val < p->val)
+            p = p->l_branch;
+        else
+            p = p->r_branch;
+    }
+    return p;
+}
+
+template<typename ElemType>
+void Binary_tree<ElemType>::insert(const ElemType &val) {
+
+    auto curr{root}, temp{root};;
+    while (nullptr != curr) //遍历二叉树，找到应该插入的父节点
+    {
+        temp = curr;
+        if (curr->val == val) {
+            return;
+        } else if (val > curr->val) {
+            curr = curr->r_branch;
+        } else {
+            curr = curr->l_branch;
+        }
+    }
+    if (temp == nullptr) {
+        root = new Node<ElemType>{val};
+    } else {
+        if (val < temp->val) {
+            temp->l_branch = new Node<ElemType>{val};
+        } else {
+            temp->r_branch = new Node<ElemType>{val};
+        }
+    }
 }
 
 template<typename ElemType>
@@ -52,7 +108,7 @@ void Binary_tree<ElemType>::inorderTraversal() const {
         if (!s.empty()) {
             p = s.top();
             s.pop();
-            cout << std::setw(4) << p->data;
+            cout << std::setw(4) << p->val;
 
             //进入右子树, 开始新的一轮左子树遍历(递归的自我实现)
             p = p->r_branch;
@@ -69,7 +125,7 @@ void Binary_tree<ElemType>::preorderTraversal() const {
 
         //I: 一直遍历到左子树下边, 边遍历边保存根节点到栈中.
         while (p != nullptr) {
-            cout << std::setw(4) << p->data;
+            cout << std::setw(4) << p->val;
             s.push(p);
             p = p->l_branch;
         }
@@ -78,7 +134,7 @@ void Binary_tree<ElemType>::preorderTraversal() const {
         if (!s.empty()) {
             p = s.top();
             s.pop();
-            //cout<<std::setw(4)<<p->data;
+            //cout<<std::setw(4)<<p->val;
 
             //进入右子树, 开始新的一轮左子树遍历(递归的自我实现)
             p = p->r_branch;
@@ -107,8 +163,8 @@ void Binary_tree<ElemType>::postorderTraversal() const {
         s.pop();
 
         //一个右子树被访问的前提是: 无右子树或右子树已被访问过.
-        if (pCur->r_branch == nullptr || pCur->r_branch = pLastVisit) {
-            cout << std::setw(4) << pCur->data;
+        if (pCur->r_branch == nullptr || pCur->r_branch == pLastVisit) {
+            cout << std::setw(4) << pCur->val;
 
             //修改最近被访问过的结点.
             pLastVisit = pCur;
