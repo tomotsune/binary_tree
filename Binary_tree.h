@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stack>
 #include <iomanip>
+#include <cmath>
 
 using std::cout;
 using std::cin;
@@ -15,37 +16,73 @@ using std::endl;
 
 template<typename ElemType>
 struct Node {
-    ElemType val{};
+    ElemType key{};
+    int height{};
     Node<ElemType> *l_branch{};
     Node<ElemType> *r_branch{};
 
-    explicit Node(const ElemType &val) : val(val) {}
+    explicit Node(const ElemType &key) : key(key) {}
 };
 
 template<typename ElemType>
 class Binary_tree {
 private:
     Node<ElemType> *root;
+
+    void destroy(Node<ElemType> *&n);
+
+    //AVL:
+    int height(const Node<ElemType> *n) const;
+
+    Node<ElemType> *insert_AVL(Node<ElemType> *&n, const ElemType &key);
+
+
+    Node<ElemType> *rightRotation(Node<ElemType> *root); //RR
+
+
+    Node<ElemType> *leftRotation(Node<ElemType> *root);//LL
+
+
+    Node<ElemType> *leftRightRotation(Node<ElemType> *root);//LR
+
+
+    Node<ElemType> *rightLeftRotation(Node<ElemType> *root);//RL
+
+
 public:
+
+    //constructors
     Binary_tree();
 
     Binary_tree(const std::initializer_list<int> &v);
 
-    void insert(const ElemType &val);
+    //destructor
+    virtual ~Binary_tree();
 
-    Node<ElemType> *search(const ElemType &val);
+    //BST.
+    void insert_BST(const ElemType &key);
 
+    Node<ElemType> *search(const ElemType &key);
+
+    //AVL.
+    int height() const;
+
+    void insert_AVL(const ElemType &key);
+
+    //traversals
     void inorderTraversal() const;
 
     void preorderTraversal() const;
 
     void postorderTraversal() const;
+
+
 };
 
 template<typename ElemType>
 Binary_tree<ElemType>::Binary_tree(const std::initializer_list<int> &v):Binary_tree() {
     for (const auto &item : v) {
-        insert(item);
+        insert_AVL(item);
     }
 }
 
@@ -54,10 +91,10 @@ Binary_tree<ElemType>::Binary_tree():root(nullptr) {
 }
 
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::search(const ElemType &val) {
+Node<ElemType> *Binary_tree<ElemType>::search(const ElemType &key) {
     auto p{root};
-    while (p != nullptr && val != p->val) {
-        if (val < p->val)
+    while (p != nullptr && key != p->key) {
+        if (key < p->key)
             p = p->l_branch;
         else
             p = p->r_branch;
@@ -66,27 +103,27 @@ Node<ElemType> *Binary_tree<ElemType>::search(const ElemType &val) {
 }
 
 template<typename ElemType>
-void Binary_tree<ElemType>::insert(const ElemType &val) {
+void Binary_tree<ElemType>::insert_BST(const ElemType &key) {
 
     auto curr{root}, temp{root};;
     while (nullptr != curr) //遍历二叉树，找到应该插入的父节点
     {
         temp = curr;
-        if (curr->val == val) {
+        if (curr->key == key) {
             return;
-        } else if (val > curr->val) {
+        } else if (key > curr->key) {
             curr = curr->r_branch;
         } else {
             curr = curr->l_branch;
         }
     }
     if (temp == nullptr) {
-        root = new Node<ElemType>{val};
+        root = new Node<ElemType>{key};
     } else {
-        if (val < temp->val) {
-            temp->l_branch = new Node<ElemType>{val};
+        if (key < temp->key) {
+            temp->l_branch = new Node<ElemType>{key};
         } else {
-            temp->r_branch = new Node<ElemType>{val};
+            temp->r_branch = new Node<ElemType>{key};
         }
     }
 }
@@ -108,7 +145,7 @@ void Binary_tree<ElemType>::inorderTraversal() const {
         if (!s.empty()) {
             p = s.top();
             s.pop();
-            cout << std::setw(4) << p->val;
+            cout << std::setw(4) << p->key;
 
             //进入右子树, 开始新的一轮左子树遍历(递归的自我实现)
             p = p->r_branch;
@@ -125,7 +162,7 @@ void Binary_tree<ElemType>::preorderTraversal() const {
 
         //I: 一直遍历到左子树下边, 边遍历边保存根节点到栈中.
         while (p != nullptr) {
-            cout << std::setw(4) << p->val;
+            cout << std::setw(4) << p->key;
             s.push(p);
             p = p->l_branch;
         }
@@ -134,7 +171,7 @@ void Binary_tree<ElemType>::preorderTraversal() const {
         if (!s.empty()) {
             p = s.top();
             s.pop();
-            //cout<<std::setw(4)<<p->val;
+            //cout<<std::setw(4)<<p->key;
 
             //进入右子树, 开始新的一轮左子树遍历(递归的自我实现)
             p = p->r_branch;
@@ -164,7 +201,7 @@ void Binary_tree<ElemType>::postorderTraversal() const {
 
         //一个右子树被访问的前提是: 无右子树或右子树已被访问过.
         if (pCur->r_branch == nullptr || pCur->r_branch == pLastVisit) {
-            cout << std::setw(4) << pCur->val;
+            cout << std::setw(4) << pCur->key;
 
             //修改最近被访问过的结点.
             pLastVisit = pCur;
@@ -181,6 +218,105 @@ void Binary_tree<ElemType>::postorderTraversal() const {
             }
         }
     }
+}
+
+template<typename ElemType>
+int Binary_tree<ElemType>::height(const Node<ElemType> *n) const {
+    if (n != nullptr) {
+        return n->height;
+    }
+    return 0;
+}
+
+template<typename ElemType>
+int Binary_tree<ElemType>::height() const {
+    return height(root);
+}
+
+//LL
+template<typename ElemType>
+Node<ElemType> *Binary_tree<ElemType>::rightRotation(Node<ElemType> *root) {
+    auto sub_root{root->l_branch};
+
+    root->l_branch = sub_root->r_branch;
+    sub_root->r_branch = root;
+
+    root->height = std::max(height(root->l_branch), height(root->r_branch)) + 1;//旋转后变为子节点, 优先更新.
+    sub_root->height = std::max(height(sub_root->l_branch), height(sub_root->r_branch)) + 1;
+
+    return sub_root;
+}
+
+//RR
+template<typename ElemType>
+Node<ElemType> *Binary_tree<ElemType>::leftRotation(Node<ElemType> *root) {
+    auto sub_root{root->r_branch};
+
+    root->r_branch = sub_root->l_branch;
+    sub_root->l_branch = root;
+
+    root->height = std::max(height(root->l_branch), height(root->r_branch)) + 1;//旋转后变为子节点, 优先更新.
+    sub_root->height = std::max(height(sub_root->l_branch), height(sub_root->r_branch)) + 1;
+
+    return sub_root;
+}
+
+//LR
+template<typename ElemType>
+Node<ElemType> *Binary_tree<ElemType>::leftRightRotation(Node<ElemType> *root) {
+    root->l_branch = leftRotation(root->l_branch);
+    return rightRotation(root);
+}
+
+//RL
+template<typename ElemType>
+Node<ElemType> *Binary_tree<ElemType>::rightLeftRotation(Node<ElemType> *root) {
+    root->r_branch = rightRotation(root->r_branch);
+    return leftRotation(root);
+}
+
+template<typename ElemType>
+Node<ElemType> *Binary_tree<ElemType>::insert_AVL(Node<ElemType> *&n, const ElemType &key) {
+    if (n == nullptr) {//寻找到插入位置.
+        n = new Node<ElemType>{key};
+    } else if (key > n->key) {//-->R
+        n->r_branch = insert_AVL(n->r_branch, key);
+        if (height(n->r_branch) - height(n->l_branch) == 2) { //失衡.
+            if (key > n->r_branch->key)//case 1: RR.
+                n = leftRotation(n);
+            else if (key < n->r_branch->key)
+                n = rightLeftRotation(n);
+        }
+    } else if (key < n->key) {    //-->L
+        n->l_branch = insert_AVL(n->l_branch, key);
+        if (height(n->l_branch) - height(n->r_branch) == 2) {
+            if (key < n->l_branch->key)
+                n = rightRotation(n);
+        } else if (key > n->l_branch->key)
+            n = leftRightRotation(n);
+    }
+    n->height = std::max(height(n->l_branch), height(n->r_branch)) + 1;
+    return n;
+}
+
+template<typename ElemType>
+void Binary_tree<ElemType>::destroy(Node<ElemType> *&n) {
+    if (n != nullptr) {
+        destroy(n->l_branch);
+        destroy(n->r_branch);
+        delete n;
+        n = nullptr;
+    }
+}
+
+template<typename ElemType>
+Binary_tree<ElemType>::~Binary_tree() {
+    destroy(root);
+}
+
+template<typename ElemType>
+void Binary_tree<ElemType>::insert_AVL(const ElemType &key) {
+    insert_AVL(root, key);
 }
 
 
