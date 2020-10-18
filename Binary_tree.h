@@ -15,38 +15,37 @@ using std::cin;
 using std::endl;
 
 template<typename ElemType>
-struct Node {
-    ElemType key{};
-    int height{};
-    Node<ElemType> *l_branch{};
-    Node<ElemType> *r_branch{};
-
-    explicit Node(const ElemType &key) : key(key) {}
-};
-
-template<typename ElemType>
 class Binary_tree {
 private:
-    Node<ElemType> *root;
+    struct Node {
+        ElemType key{};
+        int height{};
+        Node*l_branch{};
+        Node*r_branch{};
 
-    void destroy(Node<ElemType> *&n);
+        explicit Node(const ElemType &key) : key(key) {}
+    };
+    
+    Node *root;
+
+    void destroy(Node *&n);
 
     //AVL:
-    int height(const Node<ElemType> *n) const;
+    int height(const Node *n) const;
 
-    Node<ElemType> *insert_AVL(Node<ElemType> *&n, const ElemType &key);
-
-
-    Node<ElemType> *rightRotation(Node<ElemType> *root); //RR
+    Node *insert_AVL(Node *&n, const ElemType &key);
 
 
-    Node<ElemType> *leftRotation(Node<ElemType> *root);//LL
+    Node *rightRotation(Node *root); //RR
 
 
-    Node<ElemType> *leftRightRotation(Node<ElemType> *root);//LR
+    Node *leftRotation(Node *root);//LL
 
 
-    Node<ElemType> *rightLeftRotation(Node<ElemType> *root);//RL
+    Node *leftRightRotation(Node *root);//LR
+
+
+    Node *rightLeftRotation(Node *root);//RL
 
 
 public:
@@ -62,7 +61,7 @@ public:
     //BST.
     void insert_BST(const ElemType &key);
 
-    Node<ElemType> *search(const ElemType &key);
+    Node *search(const ElemType &key);
 
     //AVL.
     int height() const;
@@ -91,7 +90,7 @@ Binary_tree<ElemType>::Binary_tree():root(nullptr) {
 }
 
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::search(const ElemType &key) {
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::search(const ElemType &key) {
     auto p{root};
     while (p != nullptr && key != p->key) {
         if (key < p->key)
@@ -118,12 +117,12 @@ void Binary_tree<ElemType>::insert_BST(const ElemType &key) {
         }
     }
     if (temp == nullptr) {
-        root = new Node<ElemType>{key};
+        root = new Node{key};
     } else {
         if (key < temp->key) {
-            temp->l_branch = new Node<ElemType>{key};
+            temp->l_branch = new Node{key};
         } else {
-            temp->r_branch = new Node<ElemType>{key};
+            temp->r_branch = new Node{key};
         }
     }
 }
@@ -132,7 +131,7 @@ template<typename ElemType>
 void Binary_tree<ElemType>::inorderTraversal() const {
     if (root == nullptr)throw "error in inorderTraversal: tree is null!";
     auto p{root};
-    std::stack<Node<ElemType> *> s;
+    std::stack<Node *> s;
     while (!s.empty() || p != nullptr) {
 
         //I: 一直遍历到左子树下边, 边遍历边保存根节点到栈中.
@@ -155,9 +154,9 @@ void Binary_tree<ElemType>::inorderTraversal() const {
 
 template<typename ElemType>
 void Binary_tree<ElemType>::preorderTraversal() const {
-    if (root == nullptr)throw "error in inorderTraversal: tree is null!";
+    if (root == nullptr)throw "error in preorderTraversal: tree is null!";
     auto p{root};
-    std::stack<Node<ElemType> *> s;
+    std::stack<Node *> s;
     while (!s.empty() || p != nullptr) {
 
         //I: 一直遍历到左子树下边, 边遍历边保存根节点到栈中.
@@ -183,11 +182,11 @@ template<typename ElemType>
 void Binary_tree<ElemType>::postorderTraversal() const {
     if (root == nullptr)throw "error in postorderTraversal: tree is null!";
     auto p{root};
-    std::stack<Node<ElemType> *> s;
+    std::stack<Node *> s;
 
     //pCur: 当前访问结点, pLastVisit: 上次访问结点.
     auto pCur{root};
-    Node<ElemType> *pLastVisit{};
+    Node *pLastVisit{};
 
     //先把pCur移动到左子树最下边.
     while (pCur != nullptr) {
@@ -221,7 +220,7 @@ void Binary_tree<ElemType>::postorderTraversal() const {
 }
 
 template<typename ElemType>
-int Binary_tree<ElemType>::height(const Node<ElemType> *n) const {
+int Binary_tree<ElemType>::height(const Node *n) const {
     if (n != nullptr) {
         return n->height;
     }
@@ -235,7 +234,7 @@ int Binary_tree<ElemType>::height() const {
 
 //LL
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::rightRotation(Node<ElemType> *root) {
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::rightRotation(Node *root) {
     auto sub_root{root->l_branch};
 
     root->l_branch = sub_root->r_branch;
@@ -249,7 +248,7 @@ Node<ElemType> *Binary_tree<ElemType>::rightRotation(Node<ElemType> *root) {
 
 //RR
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::leftRotation(Node<ElemType> *root) {
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::leftRotation(Node *root) {
     auto sub_root{root->r_branch};
 
     root->r_branch = sub_root->l_branch;
@@ -263,22 +262,22 @@ Node<ElemType> *Binary_tree<ElemType>::leftRotation(Node<ElemType> *root) {
 
 //LR
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::leftRightRotation(Node<ElemType> *root) {
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::leftRightRotation(Node *root) {
     root->l_branch = leftRotation(root->l_branch);
     return rightRotation(root);
 }
 
 //RL
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::rightLeftRotation(Node<ElemType> *root) {
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::rightLeftRotation(Node *root) {
     root->r_branch = rightRotation(root->r_branch);
     return leftRotation(root);
 }
 
 template<typename ElemType>
-Node<ElemType> *Binary_tree<ElemType>::insert_AVL(Node<ElemType> *&n, const ElemType &key) {
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::insert_AVL(Node *&n, const ElemType &key) {
     if (n == nullptr) {//寻找到插入位置.
-        n = new Node<ElemType>{key};
+        n = new Node{key};
     } else if (key > n->key) {//-->R
         n->r_branch = insert_AVL(n->r_branch, key);
         if (height(n->r_branch) - height(n->l_branch) == 2) { //失衡.
@@ -300,7 +299,7 @@ Node<ElemType> *Binary_tree<ElemType>::insert_AVL(Node<ElemType> *&n, const Elem
 }
 
 template<typename ElemType>
-void Binary_tree<ElemType>::destroy(Node<ElemType> *&n) {
+void Binary_tree<ElemType>::destroy(Node *&n) {
     if (n != nullptr) {
         destroy(n->l_branch);
         destroy(n->r_branch);
