@@ -20,12 +20,12 @@ private:
     struct Node {
         ElemType key{};
         int height{};
-        Node*l_branch{};
-        Node*r_branch{};
+        Node *l_branch{};
+        Node *r_branch{};
 
         explicit Node(const ElemType &key) : key(key) {}
     };
-    
+
     Node *root;
 
     void destroy(Node *&n);
@@ -135,13 +135,13 @@ void Binary_tree<ElemType>::inorderTraversal() const {
     while (!s.empty() || p != nullptr) {
 
         //I: 一直遍历到左子树下边, 边遍历边保存根节点到栈中.
-        while (p != nullptr) {
+        if (p != nullptr) {
             s.push(p);
             p = p->l_branch;
         }
 
-        //II: 当p位空时, 说明已经到达左子树最下边, 这时需要出栈了.
-        if (!s.empty()) {
+            //II: 当p位空时, 说明已经到达左子树最下边, 这时需要出栈了.
+        else {
             p = s.top();
             s.pop();
             cout << std::setw(4) << p->key;
@@ -160,14 +160,14 @@ void Binary_tree<ElemType>::preorderTraversal() const {
     while (!s.empty() || p != nullptr) {
 
         //I: 一直遍历到左子树下边, 边遍历边保存根节点到栈中.
-        while (p != nullptr) {
+        if (p != nullptr) {
             cout << std::setw(4) << p->key;
             s.push(p);
             p = p->l_branch;
         }
 
-        //II: 当p位空时, 说明已经到达左子树最下边, 这时需要出栈了.
-        if (!s.empty()) {
+            //II: 当p位空时, 说明已经到达左子树最下边, 这时需要出栈了.
+        else {
             p = s.top();
             s.pop();
             //cout<<std::setw(4)<<p->key;
