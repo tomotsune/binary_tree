@@ -10,6 +10,8 @@ int main() {
     cout<<endl;
     tree.postorderTraversal();
     cout<<endl;
+    cout<<"----------------";
+    cout<<endl;
     Complete_binary_tree<int> ct{1,2,3,4,5};
     ct.preorderTraversal();
     return 0;
