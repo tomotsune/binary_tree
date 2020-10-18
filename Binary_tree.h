@@ -178,6 +178,9 @@ void Binary_tree<ElemType>::preorderTraversal() const {
     }
 }
 
+/*
+ * 根节点在访问完右节点后访问 ,需要在判断出栈的结点类型.
+ */
 template<typename ElemType>
 void Binary_tree<ElemType>::postorderTraversal() const {
     if (root == nullptr)throw "error in postorderTraversal: tree is null!";
@@ -193,24 +196,26 @@ void Binary_tree<ElemType>::postorderTraversal() const {
         s.push(pCur);
         pCur = pCur->l_branch;
     }
+    //pCur指空, 遍历到左子树底端 .
     while (!s.empty()) {
-        //pCur指空, 遍历到左子树底端.
         pCur = s.top();
         s.pop();
 
         //一个右子树被访问的前提是: 无右子树或右子树已被访问过.
         if (pCur->r_branch == nullptr || pCur->r_branch == pLastVisit) {
+
+            //访问结点, 修改最近被访问过的结点.
             cout << std::setw(4) << pCur->key;
-
-            //修改最近被访问过的结点.
             pLastVisit = pCur;
-        } else {
 
+        } else {
             //根结点再次入栈.
             s.push(pCur);
 
-            //进入右子树, 而可肯定右子树一定不为空.
+            //进入右子树
             pCur = pCur->r_branch;
+
+            //尝试进入右子树的左分支.
             while (pCur != nullptr) {
                 s.push(pCur);
                 pCur = pCur->l_branch;
@@ -278,14 +283,6 @@ template<typename ElemType>
 typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::insert_AVL(Node *&n, const ElemType &key) {
     if (n == nullptr) {//寻找到插入位置.
         n = new Node{key};
-    } else if (key > n->key) {//-->R
-        n->r_branch = insert_AVL(n->r_branch, key);
-        if (height(n->r_branch) - height(n->l_branch) == 2) { //失衡.
-            if (key > n->r_branch->key)//case 1: RR.
-                n = leftRotation(n);
-            else if (key < n->r_branch->key)
-                n = rightLeftRotation(n);
-        }
     } else if (key < n->key) {    //-->L
         n->l_branch = insert_AVL(n->l_branch, key);
         if (height(n->l_branch) - height(n->r_branch) == 2) {
@@ -293,7 +290,17 @@ typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::insert_AVL(Node *&n
                 n = rightRotation(n);
         } else if (key > n->l_branch->key)
             n = leftRightRotation(n);
+
+    } else if (key > n->key) {//-->R
+        n->r_branch = insert_AVL(n->r_branch, key);
+        if (height(n->r_branch) - height(n->l_branch) == 2) { //失衡.
+            if (key > n->r_branch->key)
+                n = leftRotation(n);
+            else if (key < n->r_branch->key)
+                n = rightLeftRotation(n);
+        }
     }
+
     n->height = std::max(height(n->l_branch), height(n->r_branch)) + 1;
     return n;
 }
