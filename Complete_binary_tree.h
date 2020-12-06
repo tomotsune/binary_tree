@@ -45,16 +45,7 @@ void Complete_binary_tree<ElemType>::preorderTraversal() const {
     if (root == nullptr)throw "error in preorderTraversal: tree is null!";
     std::stack<char> s;
     int index{1};
-    /*   while (!st.empty() || parentindex <= len - 1) {
-           while (parentindex <= len - 1) {
-               st.push(parentindex);
-               cout << arr[parentindex] << " ";
-               parentindex = parentindex * 2 + 1;
-           }
-           parentindex = st.top();
-           parentindex = parentindex * 2 + 2;
-           st.pop();
-       }*/
+
     while (!s.empty() || index <= size) {
         if (index <= size) {
             cout << std::setw(4) << root[index];

@@ -47,6 +47,7 @@ private:
 
     Node *rightLeftRotation(Node *root);//RL
 
+    Node *remove(Node *&root, Node *z);
 
 public:
 
@@ -54,6 +55,8 @@ public:
     Binary_tree();
 
     Binary_tree(const std::initializer_list<int> &v);
+
+    Binary_tree(const std::vector<int> &v);
 
     //destructor
     virtual ~Binary_tree();
@@ -75,7 +78,7 @@ public:
 
     void postorderTraversal() const;
 
-
+    void remove(const ElemType &key);
 };
 
 template<typename ElemType>
@@ -87,6 +90,13 @@ Binary_tree<ElemType>::Binary_tree(const std::initializer_list<int> &v):Binary_t
 
 template<typename ElemType>
 Binary_tree<ElemType>::Binary_tree():root(nullptr) {
+}
+
+template<typename ElemType>
+Binary_tree<ElemType>::Binary_tree(const std::vector<int> &v) {
+    for (const auto &item : v) {
+        insert_AVL(item);
+    }
 }
 
 template<typename ElemType>
@@ -129,7 +139,7 @@ void Binary_tree<ElemType>::insert_BST(const ElemType &key) {
 
 template<typename ElemType>
 void Binary_tree<ElemType>::inorderTraversal() const {
-    if (root == nullptr)throw "error in inorderTraversal: tree is null!";
+    if (root == nullptr)throw "error in inorderTraversal: root is null!";
     auto p{root};
     std::stack<Node *> s;
     while (!s.empty() || p != nullptr) {
@@ -154,7 +164,7 @@ void Binary_tree<ElemType>::inorderTraversal() const {
 
 template<typename ElemType>
 void Binary_tree<ElemType>::preorderTraversal() const {
-    if (root == nullptr)throw "error in preorderTraversal: tree is null!";
+    if (root == nullptr)throw "error in preorderTraversal: root is null!";
     auto p{root};
     std::stack<Node *> s;
     while (!s.empty() || p != nullptr) {
@@ -183,7 +193,7 @@ void Binary_tree<ElemType>::preorderTraversal() const {
  */
 template<typename ElemType>
 void Binary_tree<ElemType>::postorderTraversal() const {
-    if (root == nullptr)throw "error in postorderTraversal: tree is null!";
+    if (root == nullptr)throw "error in postorderTraversal: root is null!";
     auto p{root};
     std::stack<Node *> s;
 
@@ -323,6 +333,71 @@ Binary_tree<ElemType>::~Binary_tree() {
 template<typename ElemType>
 void Binary_tree<ElemType>::insert_AVL(const ElemType &key) {
     insert_AVL(root, key);
+}
+
+template<typename ElemType>
+typename Binary_tree<ElemType>::Node *Binary_tree<ElemType>::remove(Node *&root, Node *z) {
+    if (root == nullptr && z == nullptr)return nullptr;
+    if (z->key < root->key) {
+        root->l_branch = remove(root->l_branch, z);
+        if (height(root->r_branch) - height(root->l_branch) == 2) {
+            auto r{root->r_branch};
+            if (height(r->l_branch) > height(r->r_branch))
+                root = rightLeftRotation(root);
+            else
+                root = rightLeftRotation(root);
+        }
+    } else if (z->key > root->key)// 待删除的节点在"tree的右子树"中
+    {
+        root->r_branch = remove(root->r_branch, z);
+        // 删除节点后，若AVL树失去平衡，则进行相应的调节。
+        if (height(root->l_branch) - height(root->r_branch) == 2) {
+            Node *l = root->l_branch;
+            if (height(l->r_branch) > height(l->l_branch))
+                root = leftRightRotation(root);
+            else
+                root = leftRotation(root);
+        }
+    } else    // tree是对应要删除的节点。
+    {
+        // tree的左右孩子都非空
+        if ((root->l_branch != NULL) && (root->r_branch != NULL)) {
+            if (height(root->l_branch) > height(root->r_branch)) {
+                // 如果tree的左子树比右子树高；
+                // 则(01)找出tree的左子树中的最大节点
+                //   (02)将该最大节点的值赋值给tree。
+                //   (03)删除该最大节点。
+                // 这类似于用"tree的左子树中最大节点"做"root"的替身；
+                // 采用这种方式的好处是：删除"tree的左子树中最大节点"之后，AVL树仍然是平衡的。
+                //Node *max = maximum(root->l_branch);
+                Node *max = root->l_branch->l_branch->height>root->l_branch->r_branch->height?root->l_branch->l_branch:root->l_branch->r_branch;
+                root->key = max->key;
+                root->l_branch = remove(root->l_branch, max);
+            } else {
+                // 如果tree的左子树不比右子树高(即它们相等，或右子树比左子树高1)
+                // 则(01)找出tree的右子树中的最小节点
+                //   (02)将该最小节点的值赋值给tree。
+                //   (03)删除该最小节点。
+                // 这类似于用"tree的右子树中最小节点"做"root"的替身；
+                // 采用这种方式的好处是：删除"tree的右子树中最小节点"之后，AVL树仍然是平衡的。
+                //Node *min = maximum(root->r_branch);
+                Node *min = root->r_branch->l_branch->height<root->r_branch->r_branch->height?root->r_branch->l_branch:root->r_branch->r_branch;
+                root->key = min->key;
+                root->r_branch = remove(root->r_branch, min);
+            }
+        } else {
+            Node *tmp = root;
+            root = (root->l_branch != NULL) ? root->l_branch : root->r_branch;
+            delete tmp;
+        }
+    }
+
+    return root;
+}
+
+template<typename ElemType>
+void Binary_tree<ElemType>::remove(const ElemType &key) {
+    remove(root, search(key));
 }
 
 
